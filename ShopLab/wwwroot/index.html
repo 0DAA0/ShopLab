@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopLab — Интернет-магазин</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; color: #333; }
+        header { background: #1a1a2e; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.5rem; }
+        nav a { color: #a0aec0; text-decoration: none; margin-left: 1rem; cursor: pointer; }
+        nav a:hover { color: white; }
+        .btn { padding: .5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-size: .9rem; }
+        .btn-primary { background: #4361ee; color: white; }
+        .btn-danger { background: #e63946; color: white; }
+        .btn-success { background: #2dc653; color: white; }
+        .btn-sm { padding: .3rem .7rem; font-size: .8rem; }
+        main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .card { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+        .product-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.07); transition: transform .2s; }
+        .product-card:hover { transform: translateY(-3px); }
+        .product-card .body { padding: 1rem; }
+        .product-card .emoji { font-size: 4rem; text-align: center; padding: 1.5rem; background: #f0f4ff; }
+        .product-card h3 { font-size: 1rem; margin-bottom: .3rem; }
+        .product-card .price { font-size: 1.2rem; font-weight: 700; color: #4361ee; margin: .5rem 0; }
+        .product-card .stock { font-size: .8rem; color: #888; }
+        input, textarea { width: 100%; padding: .6rem; border: 1px solid #ddd; border-radius: 6px; margin-bottom: .8rem; font-size: .9rem; }
+        .form-row { display: flex; gap: 1rem; }
+        .form-row > * { flex: 1; }
+        label { font-size: .85rem; color: #555; margin-bottom: .2rem; display: block; }
+        .alert { padding: .8rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: .9rem; }
+        .alert-error { background: #fee2e2; color: #c62828; }
+        .alert-success { background: #d1fae5; color: #166534; }
+        .badge { display: inline-block; padding: .2rem .5rem; border-radius: 4px; font-size: .75rem; font-weight: 600; }
+        .badge-admin { background: #fde68a; color: #92400e; }
+        .badge-user { background: #dbeafe; color: #1e40af; }
+        .review { border-left: 3px solid #4361ee; padding-left: 1rem; margin-bottom: 1rem; }
+        .review .meta { font-size: .8rem; color: #888; margin-bottom: .3rem; }
+        .stars { color: #f59e0b; }
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: center; justify-content: center; }
+        #modal.open { display: flex; }
+        #modal-inner { background: white; border-radius: 16px; padding: 2rem; width: 480px; max-width: 95vw; }
+        .tab-bar { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+        .tab { padding: .5rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: .9rem; background: #e2e8f0; color: #555; }
+        .tab.active { background: #4361ee; color: white; }
+        table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+        th, td { padding: .7rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8fafc; font-weight: 600; }
+        .vuln-notice { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: .85rem; }
+        .vuln-notice strong { color: #856404; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>🛒 ShopLab</h1>
+    <nav>
+        <a onclick="showSection('shop')">Магазин</a>
+        <a onclick="showSection('orders')">Мои заказы</a>
+        <a onclick="showSection('profile')">Профиль</a>
+        <span id="auth-links">
+            <a onclick="openModal('login')">Войти</a>
+            <a onclick="openModal('register')">Регистрация</a>
+        </span>
+        <span id="logout-link" style="display:none">
+            <span id="user-badge"></span>
+            <a onclick="logout()" style="color:#f87171;">Выйти</a>
+        </span>
+    </nav>
+</header>
+
+<main>
+    <!-- МАГАЗИН -->
+    <section id="shop" class="section active">
+        <div class="vuln-notice">
+            <strong>⚠ Учебная лаборатория:</strong> Попробуйте поиск с SQL Injection: <code>' UNION SELECT 1,Username,Password,Email,Role,Balance FROM Users--</code>
+            или добавьте отзыв с XSS: <code>&lt;img src=x onerror="alert('XSS')"&gt;</code>
+        </div>
+        <div class="card" style="margin-bottom:1.5rem;">
+            <div class="form-row">
+                <div>
+                    <input id="search-input" type="text" placeholder="Поиск товаров...">
+                </div>
+                <div style="flex:0">
+                    <button class="btn btn-primary" onclick="searchProducts()">Найти</button>
+                </div>
+            </div>
+        </div>
+        <div id="products-grid" class="products-grid"></div>
+    </section>
+
+    <!-- ЗАКАЗЫ -->
+    <section id="orders" class="section">
+        <h2 style="margin-bottom:1.5rem;">Мои заказы</h2>
+        <div id="orders-content"></div>
+    </section>
+
+    <!-- ПРОФИЛЬ -->
+    <section id="profile" class="section">
+        <h2 style="margin-bottom:1.5rem;">Профиль</h2>
+        <div id="profile-content"></div>
+    </section>
+</main>
+
+<!-- МОДАЛЬНОЕ ОКНО -->
+<div id="modal">
+    <div id="modal-inner">
+        <div id="modal-content"></div>
+    </div>
+</div>
+
+<script>
+const API = '/api';
+let currentToken = localStorage.getItem('token');
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+
+// ---- AUTH ----
+async function apiFetch(path, opts = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (currentToken) headers['Authorization'] = 'Bearer ' + currentToken;
+    const res = await fetch(API + path, { ...opts, headers });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+}
+
+function setUser(token, user) {
+    currentToken = token;
+    currentUser = user;
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    updateNav();
+}
+
+function logout() {
+    currentToken = null; currentUser = null;
+    localStorage.removeItem('token'); localStorage.removeItem('user');
+    updateNav();
+    showSection('shop');
+}
+
+function updateNav() {
+    if (currentUser) {
+        document.getElementById('auth-links').style.display = 'none';
+        document.getElementById('logout-link').style.display = '';
+        document.getElementById('user-badge').innerHTML =
+            `<span style="color:#90caf9;margin-right:.5rem;">${currentUser.username}</span>` +
+            `<span class="badge badge-${currentUser.role}">${currentUser.role}</span>`;
+    } else {
+        document.getElementById('auth-links').style.display = '';
+        document.getElementById('logout-link').style.display = 'none';
+    }
+}
+
+// ---- MODAL ----
+function openModal(type) {
+    document.getElementById('modal').classList.add('open');
+    const el = document.getElementById('modal-content');
+    if (type === 'login') el.innerHTML = loginForm();
+    else if (type === 'register') el.innerHTML = registerForm();
+    else if (typeof type === 'object') el.innerHTML = type.html;
+}
+document.getElementById('modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal')) closeModal();
+});
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function loginForm() {
+    return `<h2 style="margin-bottom:1rem;">Вход</h2>
+    <div id="login-err"></div>
+    <label>Логин</label><input id="li-user" placeholder="admin">
+    <label>Пароль</label><input id="li-pass" type="password" placeholder="admin123">
+    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Войти</button>
+    <p style="margin-top:.8rem;font-size:.85rem;color:#888;">Тест: admin/admin123 | alice/alice123 | bob/bob123</p>`;
+}
+
+function registerForm() {
+    return `<h2 style="margin-bottom:1rem;">Регистрация</h2>
+    <div id="reg-err"></div>
+    <label>Логин</label><input id="rg-user">
+    <label>Email</label><input id="rg-email" type="email">
+    <label>Пароль</label><input id="rg-pass" type="password">
+    <button class="btn btn-primary" style="width:100%" onclick="doRegister()">Зарегистрироваться</button>`;
+}
+
+async function doLogin() {
+    const username = document.getElementById('li-user').value;
+    const password = document.getElementById('li-pass').value;
+    const { ok, data } = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+    if (ok) { setUser(data.token, data.user); closeModal(); loadProducts(); }
+    else document.getElementById('login-err').innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+}
+
+async function doRegister() {
+    const username = document.getElementById('rg-user').value;
+    const email = document.getElementById('rg-email').value;
+    const password = document.getElementById('rg-pass').value;
+    const { ok, data } = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify({ username, password, email }) });
+    if (ok) { setUser(data.token, data.user); closeModal(); }
+    else document.getElementById('reg-err').innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+}
+
+// ---- PRODUCTS ----
+async function loadProducts(q = '') {
+    const url = q ? `/products/search?q=${encodeURIComponent(q)}` : '/products';
+    const { data } = await apiFetch(url);
+    renderProducts(Array.isArray(data) ? data : []);
+}
+
+function renderProducts(products) {
+    const emojis = { 1: '💻', 2: '📱', 3: '🎧', 4: '📟', 5: '🖱️' };
+    document.getElementById('products-grid').innerHTML = products.map(p => `
+        <div class="product-card">
+            <div class="emoji">${emojis[p.id] || '📦'}</div>
+            <div class="body">
+                <h3>${p.name}</h3>
+                <p style="font-size:.8rem;color:#666;margin-bottom:.5rem;">${p.description}</p>
+                <div class="price">${p.price.toLocaleString('ru-RU')} ₽</div>
+                <div class="stock">На складе: ${p.stock} шт.</div>
+                <div style="margin-top:.8rem;display:flex;gap:.5rem;">
+                    <button class="btn btn-primary btn-sm" onclick="openBuyModal(${p.id},'${p.name}',${p.price})">Купить</button>
+                    <button class="btn btn-sm" style="background:#e2e8f0;" onclick="openReviewsModal(${p.id},'${p.name}')">Отзывы</button>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function searchProducts() {
+    const q = document.getElementById('search-input').value;
+    loadProducts(q);
+}
+
+// ---- BUY MODAL ----
+function openBuyModal(id, name, price) {
+    if (!currentUser) { openModal('login'); return; }
+    openModal({ html: `
+        <h2 style="margin-bottom:1rem;">Купить: ${name}</h2>
+        <label>Количество</label><input id="buy-qty" type="number" value="1" min="1">
+        <!-- [VULN-6] Поле для подмены цены — намеренно оставлено -->
+        <label>Цена за ед. (оставьте пустым для стандартной ${price} ₽)</label>
+        <input id="buy-price" type="number" placeholder="${price}">
+        <button class="btn btn-success" style="width:100%" onclick="doBuy(${id},${price})">Подтвердить покупку</button>
+    `});
+}
+
+async function doBuy(productId, defaultPrice) {
+    const quantity = parseInt(document.getElementById('buy-qty').value);
+    const clientPriceVal = document.getElementById('buy-price').value;
+    const clientPrice = clientPriceVal ? parseFloat(clientPriceVal) : null;
+    const body = { productId, quantity, ...(clientPrice !== null ? { clientPrice } : {}) };
+    const { ok, data } = await apiFetch('/orders/purchase', { method: 'POST', body: JSON.stringify(body) });
+    if (ok) { closeModal(); alert(`✅ Куплено! Сумма: ${data.order.totalPrice} ₽`); }
+    else alert(`❌ ${data.error}`);
+}
+
+// ---- REVIEWS MODAL ----
+async function openReviewsModal(productId, name) {
+    const { data: reviews } = await apiFetch(`/products/${productId}/reviews`);
+    const reviewsHtml = (reviews || []).map(r => `
+        <div class="review">
+            <div class="meta"><b>${r.username}</b> ${'⭐'.repeat(r.rating)}</div>
+            <!-- [VULN-2] innerHTML без санитизации = Stored XSS -->
+            <div class="review-content">${r.content}</div>
+        </div>`).join('') || '<p style="color:#888;">Пока нет отзывов</p>';
+
+    openModal({ html: `
+        <h2 style="margin-bottom:1rem;">Отзывы: ${name}</h2>
+        <div style="max-height:200px;overflow-y:auto;margin-bottom:1rem;">${reviewsHtml}</div>
+        ${currentUser ? `
+        <hr style="margin-bottom:1rem;">
+        <h3 style="margin-bottom:.8rem;">Добавить отзыв</h3>
+        <label>Оценка (1-5)</label><input id="rv-rating" type="number" min="1" max="5" value="5">
+        <label>Текст (HTML разрешён 😈)</label><textarea id="rv-text" rows="3"></textarea>
+        <button class="btn btn-primary" onclick="doAddReview(${productId})">Отправить</button>
+        ` : '<p style="color:#888;">Войдите чтобы оставить отзыв</p>'}
+    `});
+}
+
+async function doAddReview(productId) {
+    const content = document.getElementById('rv-text').value;
+    const rating = parseInt(document.getElementById('rv-rating').value);
+    const { ok } = await apiFetch('/products/reviews', { method: 'POST', body: JSON.stringify({ productId, content, rating }) });
+    if (ok) closeModal();
+}
+
+// ---- ORDERS ----
+async function loadOrders() {
+    if (!currentUser) { document.getElementById('orders-content').innerHTML = '<div class="alert alert-error">Сначала войдите в систему</div>'; return; }
+    const { data } = await apiFetch('/orders/my');
+    const orders = data || [];
+    document.getElementById('orders-content').innerHTML = orders.length ? `
+        <table>
+            <thead><tr><th>ID</th><th>Товар</th><th>Кол-во</th><th>Сумма</th><th>Статус</th></tr></thead>
+            <tbody>${orders.map(o => `
+                <tr>
+                    <td><a href="#" onclick="viewOrder(${o.id})">#${o.id}</a></td>
+                    <td>${o.productName || `#${o.productId}`}</td>
+                    <td>${o.quantity}</td>
+                    <td>${o.totalPrice?.toLocaleString('ru-RU')} ₽</td>
+                    <td><span class="badge" style="background:#d1fae5;color:#166534;">${o.status}</span></td>
+                </tr>`).join('')}
+            </tbody>
+        </table>` : '<div class="card">У вас пока нет заказов</div>';
+}
+
+async function viewOrder(id) {
+    // [VULN-7] IDOR: запрашиваем любой заказ по ID — сервер не проверяет принадлежность
+    const { ok, data } = await apiFetch(`/orders/${id}`);
+    if (ok) alert(`Заказ #${data.id}\nПользователь: ${data.username}\nТовар: ${data.productName}\nСумма: ${data.totalPrice} ₽`);
+    else alert(`Ошибка: ${data.error || 'Не найдено'}`);
+}
+
+// ---- PROFILE ----
+async function loadProfile() {
+    if (!currentUser) { document.getElementById('profile-content').innerHTML = '<div class="alert alert-error">Войдите в систему</div>'; return; }
+    const { data: user } = await apiFetch('/auth/me');
+    document.getElementById('profile-content').innerHTML = `
+        <div class="card">
+            <h3 style="margin-bottom:1rem;">${user.username} <span class="badge badge-${user.role}">${user.role}</span></h3>
+            <p><b>Email:</b> ${user.email}</p>
+            <p><b>Баланс:</b> ${user.balance?.toLocaleString('ru-RU')} ₽</p>
+            <p style="color:#e63946;font-size:.8rem;margin-top:.5rem;"><b>⚠ MD5 хеш пароля (VULN-4):</b> <code>${user.password}</code></p>
+        </div>
+        <div class="card">
+            <h3 style="margin-bottom:1rem;">Перевод средств</h3>
+            <p style="font-size:.8rem;color:#e63946;margin-bottom:.8rem;">⚠ IDOR: поле "С аккаунта #" не проверяется — попробуйте чужой ID!</p>
+            <label>С аккаунта #</label><input id="tr-from" type="number" value="${user.id}">
+            <label>На аккаунт #</label><input id="tr-to" type="number">
+            <label>Сумма (₽)</label><input id="tr-amount" type="number">
+            <button class="btn btn-primary" onclick="doTransfer()">Перевести</button>
+        </div>`;
+}
+
+async function doTransfer() {
+    const from = parseInt(document.getElementById('tr-from').value);
+    const to = parseInt(document.getElementById('tr-to').value);
+    const amount = parseFloat(document.getElementById('tr-amount').value);
+    const { ok, data } = await apiFetch('/orders/transfer', { method: 'POST', body: JSON.stringify({ fromUserId: from, toUserId: to, amount }) });
+    alert(ok ? `✅ ${data.message}` : `❌ ${data.error}`);
+}
+
+// ---- NAVIGATION ----
+function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    if (name === 'orders') loadOrders();
+    if (name === 'profile') loadProfile();
+}
+
+// Init
+updateNav();
+loadProducts();
+</script>
+</body>
+</html>
